@@ -1,0 +1,261 @@
+#!/bin/bash
+
+# File:        debmake
+# Author:      Sven Mäder <maeder@phys.ethz.ch>, ETH Zurich, ISG D-PHYS
+# Date:        2018-06-26
+# Gitlab:      https://gitlab.phys.ethz.ch/core/debmake.git
+#
+# Description: Creates a basic debian package from a git repo
+#
+# Requirement: `debuild`, provided by the package devscripts, on debian
+#              based distributions run the following command to install it:
+#
+#              apt install devscripts
+#
+# Copyright 2018 Sven Mäder <maeder@phys.ethz.ch>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+SCRIPT="$(basename ${0})"
+
+print_usage() { 
+  echo -e "Usage: ${SCRIPT} [repo] package version dist target" 
+  echo -e "\n    Creates a basic deb package."
+  echo -e "\nOptions:\n"
+  echo "    repo"
+  echo "        GIT repo to clone from"
+  echo "    package"
+  echo "        Directory to package (package name)"
+  echo "    version"
+  echo "        Version number"
+  echo "    dist"
+  echo "        Distribution codename"
+  echo "    target"
+  echo "        Target installation directory (without leading \`/\`)"
+}
+
+if [ "$#" -lt 4 ] || [ "$#" -gt 5 ]; then
+  print_usage
+  exit 1
+fi
+
+if [ "${DEBEMAIL}" == "" ] || [ "${DEBFULLNAME}" == "" ]; then
+  echo "required env vars are not set, for example do:"
+  echo "  export DEBEMAIL=\"maeder@phys.ethz.ch\""
+  echo "  export DEBFULLNAME=\"Sven Mäder\""
+  exit 1
+fi
+
+if [ "$#" -eq 5 ]; then
+  REPO="${1}"
+  PACKAGE="${2}"
+  VERSION="${3}"
+  DIST="${4}"
+  TARGET="${5}"
+  if [ ! -e "${PACKAGE}" ]; then
+    echo "${SCRIPT}: cloning ${REPO} to ${PACKAGE}"
+    git clone "${REPO}" "${PACKAGE}"
+  else
+    echo "${SCRIPT}: target does already exist"
+    exit 1
+  fi
+else
+  PACKAGE="${1}"
+  VERSION="${2}"
+  DIST="${3}"
+  TARGET="${4}"
+  REPO="${PACKAGE}"
+fi
+
+DIR="${PACKAGE}-${VERSION}"
+TAR="${PACKAGE}_${VERSION}.orig.tar.gz"
+DEBIAN="${DIR}/debian"
+DATE="$(date '+%a, %d %b %Y %T %z')"
+YEAR="$(date '+%Y')"
+
+if [ ! -e "${PACKAGE}" ]; then
+  echo "${SCRIPT}: target does not exist"
+  exit 1
+fi
+
+if [ -e "${DIR}" ]; then
+  echo "${SCRIPT}: package directory ${DIR} does already exist"
+  exit 1
+fi
+
+if [ -e "${TAR}" ]; then
+  echo "${SCRIPT}: original archive ${TAR} does already exist"
+  exit 1
+fi
+
+if [[ ${TARGET} == /* ]]; then
+  echo "${SCRIPT}: target starts with a \`/\`, please omit leading \`/\`"
+  exit 1
+fi
+
+echo "${SCRIPT}: renaming ${PACKAGE} to ${DIR}"
+mv "${PACKAGE}" "${DIR}"
+
+echo "${SCRIPT}: creating original archive ${TAR}"
+tar --exclude='.git' -czf "${TAR}" "${DIR}"
+
+echo "${SCRIPT}: creating debian directory ${DEBIAN}"
+mkdir "${DEBIAN}"
+
+echo "${SCRIPT}: creating debian directory ${DEBIAN}/source"
+mkdir "${DEBIAN}/source"
+
+echo "${SCRIPT}: creating ${DEBIAN}/changelog"
+cat > "${DEBIAN}/changelog" << EOF
+${PACKAGE} (${VERSION}-1) ${DIST}; urgency=medium
+
+  * Initial release.
+
+ -- ${DEBFULLNAME} <${DEBEMAIL}>  ${DATE}
+EOF
+
+echo "${SCRIPT}: creating ${DEBIAN}/compat"
+cat > "${DEBIAN}/compat" << EOF
+10
+EOF
+
+echo "${SCRIPT}: creating ${DEBIAN}/control"
+cat > "${DEBIAN}/control" << EOF
+Source: ${PACKAGE}
+Section: misc
+Priority: optional
+Maintainer: ${DEBFULLNAME} <${DEBEMAIL}>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 4.1.2
+Homepage: ${REPO}
+
+Package: ${PACKAGE}
+Architecture: any
+Depends: ${misc:Depends}
+Description: TODO add description
+ TODO add extended description
+EOF
+
+echo "${SCRIPT}: creating ${DEBIAN}/source/options"
+cat > "${DEBIAN}/source/options" << EOF
+tar-ignore = ".git/*"
+EOF
+
+echo "${SCRIPT}: creating ${DEBIAN}/source/format"
+cat > "${DEBIAN}/source/format" << EOF
+3.0 (quilt)
+EOF
+
+echo "${SCRIPT}: creating ${DEBIAN}/rules"
+cat > "${DEBIAN}/rules" << 'EOF'
+#!/usr/bin/make -f
+
+%:
+	dh $@
+EOF
+
+chmod +x "${DEBIAN}/rules"
+
+echo "${SCRIPT}: creating ${DEBIAN}/${PACKAGE}.links"
+cat > "${DEBIAN}/${PACKAGE}.links" << EOF
+# Add links to be created here, example:
+# /target/path /link/path
+
+EOF
+
+echo "${SCRIPT}: creating ${DEBIAN}/dirs"
+cat > "${DEBIAN}/dirs" << EOF
+# Add directories to create here (without leading /)
+
+${TARGET}
+EOF
+
+echo "${SCRIPT}: creating ${DEBIAN}/install"
+cat > "${DEBIAN}/install" << EOF
+# Add files/directories to install here (without leading /), example:
+# file.txt ${TARGET}
+# dir/ ${TARGET}
+
+EOF
+
+for path in ${DIR}/*; do
+  file="$(basename ${path})"
+  if [ "${file}" != "debian" ]; then
+    echo "${SCRIPT}: install ${file}"
+    echo "${file} ${TARGET}" >> "${DEBIAN}/install"
+  fi
+done
+
+for path in ${DIR}/.*; do
+  file="$(basename ${path})"
+  if [ "${file}" != "." ] && [ "${file}" != ".." ] && [ "${file}" != ".git" ]; then
+    echo "${SCRIPT}: install ${file}"
+    echo "${file} ${TARGET}" >> "${DEBIAN}/install"
+  fi
+done
+
+echo "${SCRIPT}: creating ${DEBIAN}/copyright"
+cat > "${DEBIAN}/copyright" << EOF
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ${PACKAGE}
+Source: ${REPO}
+
+Files: *
+Copyright: ${YEAR} ${DEBFULLNAME} <${DEBEMAIL}>
+License: GPL-3+
+ This file is part of ${PACKAGE}
+ ${PACKAGE} is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License,
+ or any later version.
+ .
+ ${PACKAGE} is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ The following additional terms are in effect as per Section 7 of the license:
+ .
+ The preservation of all legal notices and author attributions in
+ the material or in the Appropriate Legal Notices displayed
+ by works containing it is required.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Files: debian/*
+Copyright: ${YEAR} ${DEBFULLNAME} <${DEBEMAIL}>
+License: GPL-2+
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <https://www.gnu.org/licenses/>
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License version 2 can be found in "/usr/share/common-licenses/GPL-2".
+EOF
+
+echo "${SCRIPT}: building package"
+
+cd "${DIR}"
+debuild
+cd ..
