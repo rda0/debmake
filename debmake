@@ -30,7 +30,7 @@
 SCRIPT="$(basename ${0})"
 
 print_usage() { 
-  echo -e "Usage: ${SCRIPT} [repo] package version dist target" 
+  echo -e "Usage: ${SCRIPT} [repo] package version dist" 
   echo -e "\n    Creates a basic deb package."
   echo -e "\nOptions:\n"
   echo "    repo"
@@ -41,11 +41,9 @@ print_usage() {
   echo "        Version number"
   echo "    dist"
   echo "        Distribution codename"
-  echo "    target"
-  echo "        Target installation directory (without leading \`/\`)"
 }
 
-if [ "$#" -lt 4 ] || [ "$#" -gt 5 ]; then
+if [ "$#" -lt 3 ] || [ "$#" -gt 4 ]; then
   print_usage
   exit 1
 fi
@@ -57,12 +55,11 @@ if [ "${DEBEMAIL}" == "" ] || [ "${DEBFULLNAME}" == "" ]; then
   exit 1
 fi
 
-if [ "$#" -eq 5 ]; then
+if [ "$#" -eq 4 ]; then
   REPO="${1}"
   PACKAGE="${2}"
   VERSION="${3}"
   DIST="${4}"
-  TARGET="${5}"
   if [ ! -e "${PACKAGE}" ]; then
     echo "${SCRIPT}: cloning ${REPO} to ${PACKAGE}"
     git clone "${REPO}" "${PACKAGE}"
@@ -74,7 +71,6 @@ else
   PACKAGE="${1}"
   VERSION="${2}"
   DIST="${3}"
-  TARGET="${4}"
   REPO="${PACKAGE}"
 fi
 
@@ -83,6 +79,21 @@ TAR="${PACKAGE}_${VERSION}.orig.tar.gz"
 DEBIAN="${DIR}/debian"
 DATE="$(date '+%a, %d %b %Y %T %z')"
 YEAR="$(date '+%Y')"
+
+if [ -f "${PACKAGE}/.debmake" ]; then
+  . "${PACKAGE}/.debmake"
+else
+  echo "${SCRIPT}: configuration file ${PACKAGE}/.debmake not found"
+  exit 1
+fi
+
+if [ "${DEPENDS}" != "" ]; then
+  DEPENDS=", ${DEPENDS}"
+fi
+
+if [ "${SECTION}" == "" ]; then
+  SECTION="misc"
+fi
 
 if [ ! -e "${PACKAGE}" ]; then
   echo "${SCRIPT}: target does not exist"
@@ -133,18 +144,18 @@ EOF
 echo "${SCRIPT}: creating ${DEBIAN}/control"
 cat > "${DEBIAN}/control" << EOF
 Source: ${PACKAGE}
-Section: misc
+Section: ${SECTION}
 Priority: optional
 Maintainer: ${DEBFULLNAME} <${DEBEMAIL}>
 Build-Depends: debhelper (>= 10)
 Standards-Version: 4.1.2
-Homepage: ${REPO}
+Homepage: ${HOMEPAGE}
 
 Package: ${PACKAGE}
 Architecture: any
-Depends: ${misc:Depends}
-Description: TODO add description
- TODO add extended description
+Depends: \${misc:Depends}${DEPENDS}
+Description: ${DESCRIPTION_SHORT}
+ ${DESCRIPTION_LONG}
 EOF
 
 echo "${SCRIPT}: creating ${DEBIAN}/source/options"
@@ -209,7 +220,7 @@ echo "${SCRIPT}: creating ${DEBIAN}/copyright"
 cat > "${DEBIAN}/copyright" << EOF
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: ${PACKAGE}
-Source: ${REPO}
+Source: ${HOMEPAGE}
 
 Files: *
 Copyright: ${YEAR} ${DEBFULLNAME} <${DEBEMAIL}>
