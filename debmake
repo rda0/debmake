@@ -22,6 +22,9 @@
 #              BREAKS
 #              PROVIDES
 #              REPLACES
+#              COPYRIGHT           Copyright information
+#              LICENSE             License short form
+#              LICENSE_TEXT        License text
 #
 # Requirement: `debuild`, provided by the package devscripts, on debian
 #              based distributions run the following command to install it:
@@ -245,7 +248,20 @@ Upstream-Name: ${PACKAGE}
 Source: ${HOMEPAGE}
 
 Files: *
-Copyright: ${YEAR} ${DEBFULLNAME} <${DEBEMAIL}>
+EOF
+
+if [ "${COPYRIGHT}" != "" ]; then
+  printf "Copyright: ${COPYRIGHT}\n" >> "${DEBIAN}/copyright"
+else
+  printf "Copyright: ${YEAR} ${DEBFULLNAME} <${DEBEMAIL}>\n" >> "${DEBIAN}/copyright"
+fi
+
+if [ "${LICENSE}" != "" ]; then
+  printf "License: ${LICENSE}\n" >> "${DEBIAN}/copyright"
+  printf "${LICENSE_TEXT}" | fold -sw 80 | sed 's/^/ /' >> "${DEBIAN}/copyright"
+  printf "\n" >> "${DEBIAN}/copyright"
+else 
+  cat >> "${DEBIAN}/copyright" << EOF
 License: GPL-3+
  This file is part of ${PACKAGE}
  ${PACKAGE} is free software: you can redistribute it and/or modify
@@ -266,6 +282,9 @@ License: GPL-3+
  .
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+EOF
+
+cat >> "${DEBIAN}/copyright" << EOF
 
 Files: debian/*
 Copyright: ${YEAR} ${DEBFULLNAME} <${DEBEMAIL}>
