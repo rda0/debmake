@@ -5,7 +5,23 @@
 # Date:        2018-06-26
 # Gitlab:      https://gitlab.phys.ethz.ch/core/debmake.git
 #
-# Description: Creates a basic debian package from a git repo
+# Description: Creates a basic debian package from a directory or from a git
+#              repository. Configuration is done with a file `.debmake` placed
+#              in the root directory, containing the variables below.
+#
+# Variables:   TARGET              Installation path (without leading `/`)
+#              HOMEPAGE            Source of the software
+#              DESCRIPTION_SHORT   Use max. 80 characters
+#              DESCRIPTION_LONG    Automatically broken at 80 characters
+#
+# Optional:    SECTION             Default: `misc`
+#              DEPENDS             Comma separated lists of packages
+#              RECOMMENDS          ...
+#              SUGGESTS
+#              CONFLICTS
+#              BREAKS
+#              PROVIDES
+#              REPLACES
 #
 # Requirement: `debuild`, provided by the package devscripts, on debian
 #              based distributions run the following command to install it:
@@ -71,7 +87,6 @@ else
   PACKAGE="${1}"
   VERSION="${2}"
   DIST="${3}"
-  REPO="${PACKAGE}"
 fi
 
 DIR="${PACKAGE}-${VERSION}"
@@ -154,9 +169,16 @@ Homepage: ${HOMEPAGE}
 Package: ${PACKAGE}
 Architecture: any
 Depends: \${misc:Depends}${DEPENDS}
+Recommends: ${RECOMMENDS}
+Suggests: ${SUGGESTS}
+Conflicts: ${CONFLICTS}
+Breaks: ${BREAKS}
+Provides: ${PROVIDES}
+Replaces: ${REPLACES}
 Description: ${DESCRIPTION_SHORT}
- ${DESCRIPTION_LONG}
 EOF
+
+printf "${DESCRIPTION_LONG}" | fold -sw 80 | sed 's/^/ /' >> "${DEBIAN}/control"
 
 echo "${SCRIPT}: creating ${DEBIAN}/source/options"
 cat > "${DEBIAN}/source/options" << EOF

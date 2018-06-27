@@ -6,10 +6,10 @@ Creates a basic deb package.
 
 minimum:
 
-```
+```sh
 apt install devscripts
-export DEBEMAIL="you@email"
-export DEBFULLNAME="Your Name"
+export DEBEMAIL="maeder@phys.ethz.ch"
+export DEBFULLNAME="Sven Mäder"
 ```
 
 optional:
@@ -18,10 +18,46 @@ optional:
 apt install build-essential binutils cpp cpio dpkg-dev file gcc make patch dh-make debhelper devscripts fakeroot lintian debian-policy developers-reference man-db manpages reportbug
 ```
 
+## configuration
+
+create a file `.debmake` in the root directory of the package with the following contents.
+
+required:
+
+```sh
+# Target is the path where the package files will be installed (without leading `/`)
+TARGET="usr/share/plymouth/themes/dphys-logo"
+
+# The source of the software
+HOMEPAGE="https://gitlab.phys.ethz.ch/core/plymouth-theme-dphys-logo.git"
+
+# Short description (max. 80 characters)
+DESCRIPTION_SHORT="Plymouth theme for the DPHYS"
+
+# Long description will be broken to multiple lines (at 80 characters)
+DESCRIPTION_LONG="Dark theme with stars background for the Department of Physics ETH Zurich"
+```
+
+optional:
+
+```sh
+# Section (default: `misc`)
+SECTION="x11"
+
+# Dependencies (add comma separated lists of packages to these variables)
+DEPENDS="plymouth, plymouth-label, plymouth-theme-ubuntu-logo, plymouth-theme-ubuntu-text"
+RECOMMENDS=""
+SUGGESTS=""
+CONFLICTS=""
+BREAKS=""
+PROVIDES=""
+REPLACES=""
+```
+
 ## usage
 
 ```
-Usage: debmake [repo] package version dist target
+Usage: debmake [repo] package version dist
 
     Creates a basic deb package.
 
@@ -35,8 +71,6 @@ Options:
         Version number
     dist
         Distribution codename
-    target
-        Target installation directory (without leading `/`)
 ```
 
 example:
