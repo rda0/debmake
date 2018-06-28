@@ -10,6 +10,7 @@
 #              in the root directory, containing the variables below.
 #
 # Variables:   TARGET              Installation path (without leading `/`)
+#              VERSION             Version number (default: `1.0`)
 #              HOMEPAGE            Source of the software
 #              DESCRIPTION_SHORT   Use max. 80 characters
 #              DESCRIPTION_LONG    Automatically broken at 80 characters
@@ -49,20 +50,18 @@
 SCRIPT="$(basename ${0})"
 
 print_usage() { 
-  echo -e "Usage: ${SCRIPT} [repo] package version dist" 
+  echo -e "Usage: ${SCRIPT} [repo] package dist"
   echo -e "\n    Creates a basic deb package."
   echo -e "\nOptions:\n"
   echo "    repo"
   echo "        GIT repo to clone from"
   echo "    package"
   echo "        Directory to package (package name)"
-  echo "    version"
-  echo "        Version number"
   echo "    dist"
   echo "        Distribution codename"
 }
 
-if [ "$#" -lt 3 ] || [ "$#" -gt 4 ]; then
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
   print_usage
   exit 1
 fi
@@ -74,11 +73,10 @@ if [ "${DEBEMAIL}" == "" ] || [ "${DEBFULLNAME}" == "" ]; then
   exit 1
 fi
 
-if [ "$#" -eq 4 ]; then
+if [ "$#" -eq 3 ]; then
   REPO="${1}"
   PACKAGE="${2}"
-  VERSION="${3}"
-  DIST="${4}"
+  DIST="${3}"
   if [ ! -e "${PACKAGE}" ]; then
     echo "${SCRIPT}: cloning ${REPO} to ${PACKAGE}"
     git clone "${REPO}" "${PACKAGE}"
@@ -88,15 +86,8 @@ if [ "$#" -eq 4 ]; then
   fi
 else
   PACKAGE="${1}"
-  VERSION="${2}"
-  DIST="${3}"
+  DIST="${2}"
 fi
-
-DIR="${PACKAGE}-${VERSION}"
-TAR="${PACKAGE}_${VERSION}.orig.tar.gz"
-DEBIAN="${DIR}/debian"
-DATE="$(date '+%a, %d %b %Y %T %z')"
-YEAR="$(date '+%Y')"
 
 if [ -f "${PACKAGE}/.debmake" ]; then
   . "${PACKAGE}/.debmake"
@@ -104,6 +95,16 @@ else
   echo "${SCRIPT}: configuration file ${PACKAGE}/.debmake not found"
   exit 1
 fi
+
+if [ "${VERSION}" == "" ]; then
+  VERSION="1.0"
+fi
+
+DIR="${PACKAGE}-${VERSION}"
+TAR="${PACKAGE}_${VERSION}.orig.tar.gz"
+DEBIAN="${DIR}/debian"
+DATE="$(date '+%a, %d %b %Y %T %z')"
+YEAR="$(date '+%Y')"
 
 if [ "${DEPENDS}" != "" ]; then
   DEPENDS=", ${DEPENDS}"

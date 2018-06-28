@@ -44,6 +44,9 @@ optional:
 # Section (default: `misc`)
 SECTION="x11"
 
+# Version (default: `1.0`)
+VERSION=""
+
 # Dependencies (add comma separated lists of packages to these variables)
 DEPENDS="plymouth, plymouth-label, plymouth-theme-ubuntu-logo, plymouth-theme-ubuntu-text"
 RECOMMENDS=""
@@ -57,7 +60,7 @@ REPLACES=""
 ## usage
 
 ```
-Usage: debmake [repo] package version dist
+Usage: debmake [repo] package dist
 
     Creates a basic deb package.
 
@@ -67,8 +70,6 @@ Options:
         GIT repo to clone from
     package
         Directory to package (package name)
-    version
-        Version number
     dist
         Distribution codename
 ```
