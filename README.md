@@ -1,6 +1,6 @@
 # debmake
 
-Creates a basic deb package.
+Creates basic deb packages from git repositories that contain a file named `.debmake` with the package details. Suitable for creating simple packages, that just place some files on the system. Probably not very useful for more complex packages.
 
 ## requirements
 
@@ -8,14 +8,15 @@ minimum:
 
 ```sh
 apt install devscripts
-export DEBEMAIL="maeder@phys.ethz.ch"
-export DEBFULLNAME="Sven Mäder"
+export DEBEMAIL="you@mail.ch"
+export DEBFULLNAME="Your Name"
 ```
 
 optional:
 
 ```
-apt install build-essential binutils cpp cpio dpkg-dev file gcc make patch dh-make debhelper devscripts fakeroot lintian debian-policy developers-reference man-db manpages reportbug
+apt install build-essential binutils cpp cpio dpkg-dev file gcc make patch dh-make debhelper devscripts \
+            fakeroot lintian debian-policy developers-reference man-db manpages reportbug
 ```
 
 ## configuration
@@ -29,7 +30,7 @@ required:
 TARGET="usr/share/plymouth/themes/dphys-logo"
 
 # The source of the software
-HOMEPAGE="https://gitlab.phys.ethz.ch/core/plymouth-theme-dphys-logo.git"
+HOMEPAGE="https://github.com/rda0/plymouth-theme-dphys-logo.git"
 
 # Short description (max. 80 characters)
 DESCRIPTION_SHORT="Plymouth theme for the DPHYS"
@@ -55,6 +56,11 @@ CONFLICTS=""
 BREAKS=""
 PROVIDES=""
 REPLACES=""
+
+# Copyright and License info (default: `GPL-3+`)
+COPYRIGHT=""
+LICENSE=""
+LICENSE_TEXT=""
 ```
 
 ## usage
@@ -77,7 +83,7 @@ Options:
 example:
 
 ```
-debmake git@gitlab.phys.ethz.ch:core/plymouth-theme-dphys-logo.git plymouth-theme-dphys-logo 1.0 bionic usr/share/plymouth/themes/dphys-logo
+debmake https://github.com/rda0/plymouth-theme-dphys-logo.git plymouth-theme-dphys-logo bionic
 ```
 
 ## manual modifications

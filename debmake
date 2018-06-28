@@ -68,8 +68,8 @@ fi
 
 if [ "${DEBEMAIL}" == "" ] || [ "${DEBFULLNAME}" == "" ]; then
   echo "required env vars are not set, for example do:"
-  echo "  export DEBEMAIL=\"maeder@phys.ethz.ch\""
-  echo "  export DEBFULLNAME=\"Sven Mäder\""
+  echo "  export DEBEMAIL=\"you@mail.ch\""
+  echo "  export DEBFULLNAME=\"Your Name\""
   exit 1
 fi
 
