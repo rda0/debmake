@@ -236,7 +236,7 @@ done
 
 for path in ${DIR}/.*; do
   file="$(basename ${path})"
-  if [ "${file}" != "." ] && [ "${file}" != ".." ] && [ "${file}" != ".git" ]; then
+  if [ "${file}" != "." ] && [ "${file}" != ".." ] && [ "${file}" != ".git" ] && [ "${file}" != ".gitignore" ]; then
     echo "${SCRIPT}: install ${file}"
     echo "${file} ${TARGET}" >> "${DEBIAN}/install"
   fi
