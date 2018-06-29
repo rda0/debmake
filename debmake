@@ -259,7 +259,7 @@ for path in ${DIR}/.*; do
       isdoc=1
     fi
   done
-  if [ "${file}" != "." ] && [ "${file}" != ".." ] && [ "${file}" != ".git" ] && [ "${file}" != ".gitignore" ]; then
+  if [ "${file}" != "." ] && [ "${file}" != ".." ] && [ "${file}" != ".git" ] && [ "${file}" != ".gitignore" ] && [ "${file}" != ".debmake" ]; then
     if [ ${isdoc} -eq 1 ]; then
       echo "${SCRIPT}: install doc ${file}"
       echo "${file} ${DOCTARGET}" >> "${DEBIAN}/install"
