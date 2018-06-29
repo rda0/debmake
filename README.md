@@ -61,6 +61,10 @@ REPLACES=""
 COPYRIGHT=""
 LICENSE=""
 LICENSE_TEXT=""
+
+# Doc files to be put under `/usr/share/doc`, include all files like readme, license, copyright, etc.
+# If left empty it defaults to:
+DOC="README README.md README.markdown README.txt LICENSE LICENSE.txt COPYRIGHT COPYRIGHT.txt COPYING COPYING.txt"
 ```
 
 ## usage

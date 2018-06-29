@@ -26,6 +26,7 @@
 #              COPYRIGHT           Copyright information
 #              LICENSE             License short form
 #              LICENSE_TEXT        License text
+#              DOC                 Space separated list of doc files
 #
 # Requirement: `debuild`, provided by the package devscripts, on debian
 #              based distributions run the following command to install it:
@@ -100,11 +101,16 @@ if [ "${VERSION}" == "" ]; then
   VERSION="1.0"
 fi
 
+if [ "${DOC}" == "" ]; then
+  DOC="README README.md README.markdown README.txt LICENSE LICENSE.txt COPYRIGHT COPYRIGHT.txt COPYING COPYING.txt"
+fi
+
 DIR="${PACKAGE}-${VERSION}"
 TAR="${PACKAGE}_${VERSION}.orig.tar.gz"
 DEBIAN="${DIR}/debian"
 DATE="$(date '+%a, %d %b %Y %T %z')"
 YEAR="$(date '+%Y')"
+DOCTARGET="usr/share/doc/${PACKAGE}"
 
 if [ "${DEPENDS}" != "" ]; then
   DEPENDS=", ${DEPENDS}"
@@ -228,17 +234,39 @@ EOF
 
 for path in ${DIR}/*; do
   file="$(basename ${path})"
+  isdoc=0
+  for docfile in ${DOC}; do
+    if [ "${docfile}" == "${file}" ]; then
+      isdoc=1
+    fi
+  done
   if [ "${file}" != "debian" ]; then
-    echo "${SCRIPT}: install ${file}"
-    echo "${file} ${TARGET}" >> "${DEBIAN}/install"
+    if [ ${isdoc} -eq 1 ]; then
+      echo "${SCRIPT}: install doc ${file}"
+      echo "${file} ${DOCTARGET}" >> "${DEBIAN}/install"
+    else
+      echo "${SCRIPT}: install ${file}"
+      echo "${file} ${TARGET}" >> "${DEBIAN}/install"
+    fi
   fi
 done
 
 for path in ${DIR}/.*; do
   file="$(basename ${path})"
+  isdoc=0
+  for docfile in ${DOC}; do
+    if [ "${docfile}" == "${file}" ]; then
+      isdoc=1
+    fi
+  done
   if [ "${file}" != "." ] && [ "${file}" != ".." ] && [ "${file}" != ".git" ] && [ "${file}" != ".gitignore" ]; then
-    echo "${SCRIPT}: install ${file}"
-    echo "${file} ${TARGET}" >> "${DEBIAN}/install"
+    if [ ${isdoc} -eq 1 ]; then
+      echo "${SCRIPT}: install doc ${file}"
+      echo "${file} ${DOCTARGET}" >> "${DEBIAN}/install"
+    else
+      echo "${SCRIPT}: install ${file}"
+      echo "${file} ${TARGET}" >> "${DEBIAN}/install"
+    fi
   fi
 done
 
