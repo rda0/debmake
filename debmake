@@ -338,6 +338,16 @@ EOF
 
 echo "${SCRIPT}: building package"
 
+if [ -f "${DIR}/.debmake.postinst" ]; then
+    cp "${DIR}/.debmake.postinst" "${DEBIAN}/${PACKAGE}.postinst"
+    chmod +x "${DEBIAN}/${PACKAGE}.postinst"
+fi
+
+if [ -f "${DIR}/.debmake.changelog" ]; then
+    echo >> "${DEBIAN}/changelog"
+    cat "${DIR}/.debmake.changelog" >> "${DEBIAN}/changelog"
+fi
+
 cd "${DIR}"
 debuild
 cd ..
