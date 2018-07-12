@@ -152,14 +152,25 @@ mkdir "${DEBIAN}"
 echo "${SCRIPT}: creating debian directory ${DEBIAN}/source"
 mkdir "${DEBIAN}/source"
 
+if [ -f "${DIR}/.debmake.changelog" ]; then
+    RELEASE_TEXT="New upstream release"
+else
+    RELEASE_TEXT="Initial release"
+fi
+
 echo "${SCRIPT}: creating ${DEBIAN}/changelog"
 cat > "${DEBIAN}/changelog" << EOF
 ${PACKAGE} (${VERSION}-1) ${DIST}; urgency=medium
 
-  * Initial release.
+  * ${RELEASE_TEXT}.
 
  -- ${DEBFULLNAME} <${DEBEMAIL}>  ${DATE}
 EOF
+
+if [ -f "${DIR}/.debmake.changelog" ]; then
+    echo >> "${DEBIAN}/changelog"
+    cat "${DIR}/.debmake.changelog" >> "${DEBIAN}/changelog"
+fi
 
 echo "${SCRIPT}: creating ${DEBIAN}/compat"
 cat > "${DEBIAN}/compat" << EOF
@@ -336,17 +347,12 @@ License: GPL-2+
  Public License version 2 can be found in "/usr/share/common-licenses/GPL-2".
 EOF
 
-echo "${SCRIPT}: building package"
-
 if [ -f "${DIR}/.debmake.postinst" ]; then
     cp "${DIR}/.debmake.postinst" "${DEBIAN}/${PACKAGE}.postinst"
     chmod +x "${DEBIAN}/${PACKAGE}.postinst"
 fi
 
-if [ -f "${DIR}/.debmake.changelog" ]; then
-    echo >> "${DEBIAN}/changelog"
-    cat "${DIR}/.debmake.changelog" >> "${DEBIAN}/changelog"
-fi
+echo "${SCRIPT}: building package"
 
 cd "${DIR}"
 debuild
