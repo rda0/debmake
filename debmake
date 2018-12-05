@@ -19,6 +19,8 @@
 #              DEPENDS             Comma separated lists of packages
 #              RECOMMENDS          ...
 #              SUGGESTS
+#              ENHANCES
+#              PREDEPENDS
 #              CONFLICTS
 #              BREAKS
 #              PROVIDES
@@ -192,6 +194,8 @@ Architecture: any
 Depends: \${misc:Depends}${DEPENDS}
 Recommends: ${RECOMMENDS}
 Suggests: ${SUGGESTS}
+Enhances: ${ENHANCES}
+Pre-Depends: ${PREDEPENDS}
 Conflicts: ${CONFLICTS}
 Breaks: ${BREAKS}
 Provides: ${PROVIDES}
