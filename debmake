@@ -148,11 +148,8 @@ mv "${PACKAGE}" "${DIR}"
 echo "${SCRIPT}: creating original archive ${TAR}"
 tar --exclude='.git' -czf "${TAR}" "${DIR}"
 
-echo "${SCRIPT}: creating debian directory ${DEBIAN}"
-mkdir "${DEBIAN}"
-
-echo "${SCRIPT}: creating debian directory ${DEBIAN}/source"
-mkdir "${DEBIAN}/source"
+echo "${SCRIPT}: creating debian ${DEBIAN} and ${DEBIAN}/source directories"
+mkdir -p "${DEBIAN}/source"
 
 if [ -f "${DIR}/.debmake.changelog" ]; then
     RELEASE_TEXT="New upstream release"
