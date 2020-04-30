@@ -123,4 +123,4 @@ rm debian/*.ex debian/*.EX debian/README.* debian/*.docs
 debuild
 ```
 
-then fix the errors until il builds successfully
+then fix the errors until it builds successfully
