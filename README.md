@@ -2,6 +2,8 @@
 
 Creates basic deb packages from git repositories that contain a file named `.debmake` with the package details. Suitable for creating simple packages, that just place some files on the system. Probably not very useful for more complex packages.
 
+For more not so simple packages, please use `dh_make` (`apt install dh-make`).
+
 ## requirements
 
 minimum:
