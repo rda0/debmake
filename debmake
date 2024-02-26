@@ -52,7 +52,7 @@
 
 SCRIPT="$(basename ${0})"
 
-print_usage() { 
+print_usage() {
   echo -e "Usage: ${SCRIPT} [repo] package dist"
   echo -e "\n    Creates a basic deb package."
   echo -e "\nOptions:\n"
@@ -200,7 +200,7 @@ Replaces: ${REPLACES}
 Description: ${DESCRIPTION_SHORT}
 EOF
 
-printf "${DESCRIPTION_LONG}" | fold -sw 80 | sed 's/^/ /' >> "${DEBIAN}/control"
+printf "${DESCRIPTION_LONG}\n" | fold -sw 80 | sed 's/^/ /' >> "${DEBIAN}/control"
 
 echo "${SCRIPT}: creating ${DEBIAN}/source/options"
 cat > "${DEBIAN}/source/options" << EOF
@@ -271,7 +271,7 @@ for path in ${DIR}/.*; do
       isdoc=1
     fi
   done
-  if [ "${file}" != "." ] && [ "${file}" != ".." ] && [ "${file}" != ".git" ] && [ "${file}" != ".gitignore" ] && [ "${file}" != ".debmake" ] && [ "${file}" != ".debmake.changelog" ] && [ "${file}" != ".debmake.postinst" ]; then
+  if [ "${file}" != "." ] && [ "${file}" != ".." ] && [ "${file}" != ".git" ] && [ "${file}" != ".gitignore" ] && [ "${file}" != ".debmake" ] && [ "${file}" != ".debmake.changelog" ] && [ "${file}" != ".debmake.postinst" ] && [ "${file}" != ".debmake.preinst" ]; then
     if [ ${isdoc} -eq 1 ]; then
       echo "${SCRIPT}: install doc ${file}"
       echo "${file} ${DOCTARGET}" >> "${DEBIAN}/install"
@@ -301,7 +301,7 @@ if [ "${LICENSE}" != "" ]; then
   printf "License: ${LICENSE}\n" >> "${DEBIAN}/copyright"
   printf "${LICENSE_TEXT}" | fold -sw 80 | sed 's/^/ /' >> "${DEBIAN}/copyright"
   printf "\n" >> "${DEBIAN}/copyright"
-else 
+else
   cat >> "${DEBIAN}/copyright" << EOF
 License: GPL-3+
  This file is part of ${PACKAGE}
@@ -347,6 +347,11 @@ License: GPL-2+
  On Debian systems, the complete text of the GNU General
  Public License version 2 can be found in "/usr/share/common-licenses/GPL-2".
 EOF
+
+if [ -f "${DIR}/.debmake.preinst" ]; then
+    cp "${DIR}/.debmake.preinst" "${DEBIAN}/${PACKAGE}.preinst"
+    chmod +x "${DEBIAN}/${PACKAGE}.preinst"
+fi
 
 if [ -f "${DIR}/.debmake.postinst" ]; then
     cp "${DIR}/.debmake.postinst" "${DEBIAN}/${PACKAGE}.postinst"

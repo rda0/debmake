@@ -69,6 +69,12 @@ LICENSE_TEXT=""
 DOC="README README.md README.markdown README.txt LICENSE LICENSE.txt COPYRIGHT COPYRIGHT.txt COPYING COPYING.txt"
 ```
 
+optional files:
+
+- `.debmake.control`: override control file
+- `.debmake.preinst`: preinst script
+- `.debmake.postinst`: postinst script
+
 ## usage
 
 ```
